@@ -29,6 +29,7 @@ export default defineConfigWithVueTs(
 		rules: {
 			'comma-dangle': ['error', 'always-multiline'],
 			'indent': ['error', 'tab'],
+			'vue/html-indent': ['error', 'tab'],
 	  },
 	},
 )

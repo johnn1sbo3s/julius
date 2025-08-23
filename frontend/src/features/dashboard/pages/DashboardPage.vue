@@ -1,6 +1,6 @@
 <template>
     <div>
-        <router-view></router-view>
+        CHAMA NA DASHBOARD
     </div>
 </template>
 

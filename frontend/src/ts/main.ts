@@ -1,10 +1,10 @@
-import './assets/main.css'
+import '@/css/main.css'
 
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 
-import App from './App.vue'
-import router from './core/routes/index'
+import App from '@/ts/App.vue'
+import router from '@/ts/core/routes/index'
 
 const app = createApp(App)
 

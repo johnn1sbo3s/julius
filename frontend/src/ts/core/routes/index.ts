@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import DashboardPage from '../../dashboard/pages/DashboardPage.vue'
-import TransactionRoutes from '../../transaction/routes/index'
+import DashboardPage from '@/ts/features/dashboard/pages/DashboardPage.vue'
+import TransactionRoutes from '@/ts/features/transaction/routes/index'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),

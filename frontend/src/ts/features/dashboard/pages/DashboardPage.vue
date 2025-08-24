@@ -1,12 +1,17 @@
 <template>
 	<div class="text-red-400">
-		<RouterLink to="/transaction/new">
-			Nova Transação
-		</RouterLink>
+		<UButton @click="openTransactionModal">Nova Transação</UButton>
 	</div>
 </template>
 
 <script lang="ts" setup>
+import { useRouter } from 'vue-router';
+
+const router = useRouter();
+
+function openTransactionModal() {
+	router.push('/transaction/new');
+}
 
 </script>
 

@@ -1,4 +1,6 @@
 @import './base.css';
+@import 'tailwindcss';
+@import "@nuxt/ui";
 
 body {
 	display: flex;

@@ -12,7 +12,14 @@ export default defineConfig({
 		vue(),
 		vueDevTools(),
 		tailwindcss(),
-		ui(),
+		ui({
+			ui: {
+				colors: {
+					primary: 'yellow',
+					neutral: 'zinc',
+				},
+			},
+		}),
 	],
 	resolve: {
 		alias: {

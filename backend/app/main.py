@@ -7,7 +7,7 @@ from fastapi import FastAPI
 
 app = FastAPI(
     title="Julius",
-    description="API for tracking monthly expenses by category",
+    description="API for tracking monthly expenses",
     version="0.1.0"
 )
 

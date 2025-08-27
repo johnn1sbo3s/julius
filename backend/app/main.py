@@ -4,6 +4,7 @@ This file contains the FastAPI application instance and basic configuration.
 """
 
 from fastapi import FastAPI
+from .routes import user_router
 
 app: FastAPI = FastAPI(
     title="Julius",
@@ -11,6 +12,14 @@ app: FastAPI = FastAPI(
     version="0.1.0"
 )
 
+# Include routers
+app.include_router(user_router, prefix="/api/v1")
+
 @app.get("/")
 def read_root() -> dict[str, str]:
     return {"message": "Julius API is running."}
+
+
+@app.get("/health")
+def health_check() -> dict[str, str]:
+    return {"status": "healthy"}

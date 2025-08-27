@@ -24,3 +24,13 @@ engine = create_engine(DATABASE_URL)
 
 # Cria uma fábrica de sessões
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+
+# Dependency function for FastAPI
+def get_db():
+    """Dependency function to get database session."""
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()

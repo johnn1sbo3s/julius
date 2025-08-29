@@ -40,29 +40,6 @@ def register_user(
         )
 
 
-@router.post("/login", response_model=user_schemas.UserResponse)
-def login_user(
-    user_credentials: user_schemas.UserLogin,
-    db: Session = Depends(get_db)
-):
-    """
-    Authenticate a user with email and password.
-    
-    - **email**: User's email address
-    - **password**: User's password
-    """
-    user = user_crud.authenticate_user(
-        db=db, 
-        email=user_credentials.email, 
-        password=user_credentials.password
-    )
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid email or password"
-        )
-    return user
-
 
 @router.get("/me", response_model=user_schemas.UserResponse)
 def get_current_user_profile(

@@ -8,7 +8,7 @@ from .base import Base
 from .user import User
 from .category import Category
 from .expense import Expense
-from .expense_budget import ExpenseBudget
+from .category_budget import CategoryBudget
 from .transaction import Transaction
 
 __all__ = [
@@ -16,6 +16,6 @@ __all__ = [
     "User", 
     "Category",
     "Expense",
-    "ExpenseBudget",
+    "CategoryBudget",
     "Transaction",
 ]

@@ -11,6 +11,11 @@ from .user import (
     UserResponse,
     UserLogin,
 )
+from .auth import (
+    Token,
+    TokenData,
+    LoginRequest,
+)
 from .category import (
     CategoryBase,
     CategoryCreate,
@@ -23,11 +28,14 @@ from .expense import (
     ExpenseUpdate,
     ExpenseResponse,
 )
-from .expense_budget import (
-    ExpenseBudgetBase,
-    ExpenseBudgetCreate,
-    ExpenseBudgetUpdate,
-    ExpenseBudgetResponse,
+from .category_budget import (
+    CategoryBudgetBase,
+    CategoryBudgetCreate,
+    CategoryBudgetUpdate,
+    CategoryBudgetResponse,
+    CategoryBudgetWithCategory,
+    MonthlyBudgetAllocation,
+    MonthlyBudgetSummary,
 )
 from .transaction import (
     TransactionBase,
@@ -43,6 +51,10 @@ __all__ = [
     "UserUpdate",
     "UserResponse",
     "UserLogin",
+    # Authentication schemas
+    "Token",
+    "TokenData",
+    "LoginRequest",
     # Category schemas
     "CategoryBase",
     "CategoryCreate",
@@ -53,11 +65,14 @@ __all__ = [
     "ExpenseCreate",
     "ExpenseUpdate",
     "ExpenseResponse",
-    # Expense Budget schemas
-    "ExpenseBudgetBase",
-    "ExpenseBudgetCreate",
-    "ExpenseBudgetUpdate",
-    "ExpenseBudgetResponse",
+    # Category Budget schemas
+    "CategoryBudgetBase",
+    "CategoryBudgetCreate",
+    "CategoryBudgetUpdate",
+    "CategoryBudgetResponse",
+    "CategoryBudgetWithCategory",
+    "MonthlyBudgetAllocation",
+    "MonthlyBudgetSummary",
     # Transaction schemas
     "TransactionBase",
     "TransactionCreate",

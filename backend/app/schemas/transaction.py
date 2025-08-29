@@ -9,11 +9,8 @@ These schemas define the structure of transaction data that flows through our AP
 
 from datetime import datetime, date
 from decimal import Decimal
-from typing import Optional, TYPE_CHECKING
+from typing import Optional
 from pydantic import BaseModel, Field, ConfigDict, field_validator
-
-if TYPE_CHECKING:
-    from .expense import ExpenseResponse
 
 
 class TransactionBase(BaseModel):
@@ -73,9 +70,6 @@ class TransactionResponse(TransactionBase):
     user_id: int = Field(..., description="ID of the user who owns this transaction")
     created_at: datetime = Field(..., description="When the transaction was created")
     
-    # Include expense information in response
-    expense: Optional["ExpenseResponse"] = Field(None, description="Expense details")
-    
     model_config = ConfigDict(
         from_attributes=True,
         json_schema_extra={
@@ -86,14 +80,7 @@ class TransactionResponse(TransactionBase):
                 "description": "Compras no supermercado",
                 "transaction_date": "2024-08-26",
                 "user_id": 1,
-                "created_at": "2024-08-26T10:30:00",
-                "expense": {
-                    "id": 1,
-                    "name": "Supermercado",
-                    "category_id": 1,
-                    "user_id": 1,
-                    "created_at": "2024-08-26T10:30:00"
-                }
+                "created_at": "2024-08-26T10:30:00"
             }
         }
     )

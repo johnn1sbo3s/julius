@@ -12,6 +12,7 @@ from .base import Base
 
 if TYPE_CHECKING:
     from .category import Category
+    from .category_budget import CategoryBudget
 
 
 class User(Base):
@@ -29,3 +30,4 @@ class User(Base):
 
     # Relationships
     categories: Mapped[list["Category"]] = relationship(back_populates="owner")
+    category_budgets: Mapped[list["CategoryBudget"]] = relationship(back_populates="user")

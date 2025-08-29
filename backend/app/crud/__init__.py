@@ -6,8 +6,6 @@ This package contains all database operations organized by domain.
 
 # User CRUD operations
 from .user import (
-    get_password_hash,
-    verify_password,
     get_user,
     get_user_by_email,
     get_users,
@@ -37,14 +35,17 @@ from .expense import (
     delete_expense,
 )
 
-# Expense Budget CRUD operations
-from .expense_budget import (
-    get_expense_budget,
-    get_expense_budgets,
-    get_expense_budget_by_month,
-    create_expense_budget,
-    update_expense_budget,
-    delete_expense_budget,
+# Category Budget CRUD operations
+from .category_budget import (
+    get_category_budget,
+    get_category_budgets_by_month,
+    get_category_budgets_by_category,
+    create_category_budget,
+    update_category_budget,
+    delete_category_budget,
+    delete_category_budgets_by_month,
+    create_or_update_monthly_budget,
+    get_monthly_budget_summary,
 )
 
 # Transaction CRUD operations
@@ -59,8 +60,6 @@ from .transaction import (
 
 __all__ = [
     # User operations
-    "get_password_hash",
-    "verify_password",
     "get_user",
     "get_user_by_email",
     "get_users",
@@ -82,13 +81,16 @@ __all__ = [
     "create_expense",
     "update_expense",
     "delete_expense",
-    # Expense Budget operations
-    "get_expense_budget",
-    "get_expense_budgets",
-    "get_expense_budget_by_month",
-    "create_expense_budget",
-    "update_expense_budget",
-    "delete_expense_budget",
+    # Category Budget operations
+    "get_category_budget",
+    "get_category_budgets_by_month",
+    "get_category_budgets_by_category",
+    "create_category_budget",
+    "update_category_budget",
+    "delete_category_budget",
+    "delete_category_budgets_by_month",
+    "create_or_update_monthly_budget",
+    "get_monthly_budget_summary",
     # Transaction operations
     "get_transaction",
     "get_transactions",

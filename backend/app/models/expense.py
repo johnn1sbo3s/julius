@@ -12,7 +12,6 @@ from .base import Base
 
 if TYPE_CHECKING:
     from .category import Category
-    from .expense_budget import ExpenseBudget
     from .transaction import Transaction
 
 
@@ -33,5 +32,4 @@ class Expense(Base):
 
     # Relationships
     category: Mapped["Category"] = relationship(back_populates="expenses")
-    budgets: Mapped[list["ExpenseBudget"]] = relationship(back_populates="expense")
     transactions: Mapped[list["Transaction"]] = relationship(back_populates="expense")

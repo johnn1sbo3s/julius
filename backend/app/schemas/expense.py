@@ -8,11 +8,8 @@ These schemas define the structure of expense data that flows through our API:
 """
 
 from datetime import datetime
-from typing import Optional, TYPE_CHECKING
+from typing import Optional
 from pydantic import BaseModel, Field, ConfigDict
-
-if TYPE_CHECKING:
-    from .category import CategoryResponse
 
 
 class ExpenseBase(BaseModel):
@@ -54,9 +51,6 @@ class ExpenseResponse(ExpenseBase):
     user_id: int = Field(..., description="ID of the user who owns this expense")
     created_at: datetime = Field(..., description="When the expense was created")
     
-    # Include category information in response
-    category: Optional["CategoryResponse"] = Field(None, description="Category details")
-    
     model_config = ConfigDict(
         from_attributes=True,
         json_schema_extra={
@@ -65,13 +59,7 @@ class ExpenseResponse(ExpenseBase):
                 "name": "Supermercado",
                 "category_id": 1,
                 "user_id": 1,
-                "created_at": "2024-08-26T10:30:00",
-                "category": {
-                    "id": 1,
-                    "name": "Alimentação",
-                    "user_id": 1,
-                    "created_at": "2024-08-26T10:30:00"
-                }
+                "created_at": "2024-08-26T10:30:00"
             }
         }
     )

@@ -11,24 +11,7 @@ from sqlalchemy.orm import Session
 
 from ..models import User
 from ..schemas.user import UserCreate, UserUpdate
-
-
-# =============================================================================
-# PASSWORD UTILITIES
-# =============================================================================
-
-def get_password_hash(password: str) -> str:
-    """Hash a password for storing in the database."""
-    # For now, we'll use a simple approach. In Phase 5, we'll implement proper hashing
-    # TODO: Replace with proper bcrypt hashing in Phase 5
-    return f"hashed_{password}"
-
-
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    """Verify a password against its hash."""
-    # For now, simple verification. Will be replaced with bcrypt in Phase 5
-    # TODO: Replace with proper bcrypt verification in Phase 5
-    return hashed_password == f"hashed_{plain_password}"
+from ..security import get_password_hash, verify_password
 
 
 # =============================================================================

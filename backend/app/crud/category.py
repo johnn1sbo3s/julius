@@ -28,7 +28,7 @@ def get_categories(db: Session, user_id: int, skip: int = 0, limit: int = 100) -
     ).offset(skip).limit(limit).all()
 
 
-def get_category_by_name(db: Session, user_id: int, name: str) -> Optional[Category]:
+def get_category_by_name(db: Session, name: str, user_id: int) -> Optional[Category]:
     """Get a category by name for a specific user."""
     return db.query(Category).filter(
         and_(Category.user_id == user_id, Category.name == name)
@@ -51,7 +51,7 @@ def create_category(db: Session, category: CategoryCreate, user_id: int) -> Cate
         ValueError: If category with name already exists for this user
     """
     # Check if category already exists for this user
-    if get_category_by_name(db, user_id, category.name):
+    if get_category_by_name(db, category.name, user_id):
         raise ValueError(f"Category '{category.name}' already exists for this user")
     
     # Create category model
@@ -69,7 +69,7 @@ def create_category(db: Session, category: CategoryCreate, user_id: int) -> Cate
     return db_category
 
 
-def update_category(db: Session, category_id: int, user_id: int, category: CategoryUpdate) -> Optional[Category]:
+def update_category(db: Session, category_id: int, category: CategoryUpdate, user_id: int) -> Optional[Category]:
     """
     Update category information.
     
@@ -91,7 +91,7 @@ def update_category(db: Session, category_id: int, user_id: int, category: Categ
     
     # Check if name is being updated and if it already exists
     if category.name and category.name != db_category.name:
-        existing_category = get_category_by_name(db, user_id, category.name)
+        existing_category = get_category_by_name(db, category.name, user_id)
         if existing_category:
             raise ValueError(f"Category '{category.name}' already exists for this user")
     

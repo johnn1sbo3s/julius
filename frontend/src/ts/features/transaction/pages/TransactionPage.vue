@@ -1,7 +1,7 @@
 <template>
-    <div>
-        Chama na grande maior!
-    </div>
+	<div>
+		Chama na grande maior!
+	</div>
 </template>
 
 <script lang="ts" setup>

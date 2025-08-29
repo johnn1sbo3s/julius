@@ -32,20 +32,7 @@ def override_get_db():
         db.close()
 
 
-@pytest.fixture(scope="session")
-def test_client():
-    """Create a test client for the FastAPI application."""
-    # Create the database tables
-    Base.metadata.create_all(bind=engine)
-    
-    # Override the database dependency
-    app.dependency_overrides[get_db] = override_get_db
-    
-    with TestClient(app) as client:
-        yield client
-    
-    # Clean up
-    Base.metadata.drop_all(bind=engine)
+
 
 
 @pytest.fixture(scope="function")
@@ -85,27 +72,7 @@ def test_user(db_session):
     return user
 
 
-@pytest.fixture
-def auth_headers(test_user):
-    """Create authentication headers for testing protected endpoints."""
-    from app.security import create_access_token
-    
-    access_token = create_access_token(data={"sub": str(test_user.id)})
-    return {"Authorization": f"Bearer {access_token}"}
 
-
-@pytest.fixture
-def mock_current_user(test_user):
-    """Mock the current user dependency for testing."""
-    def _get_current_user():
-        return test_user
-    
-    app.dependency_overrides[get_current_active_user] = _get_current_user
-    yield test_user
-    
-    # Clean up
-    if get_current_active_user in app.dependency_overrides:
-        del app.dependency_overrides[get_current_active_user]
 
 
 @pytest.fixture

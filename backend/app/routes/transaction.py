@@ -162,7 +162,7 @@ def delete_transaction(
 @router.get("/analytics/monthly-summary")
 def get_monthly_summary(
     user_id: int = Query(..., description="ID of the user"),  # TODO: Extract from JWT in Phase 5
-    month: str = Query(..., regex=r"^\d{4}-\d{2}$", description="Month in YYYY-MM format"),
+    month: str = Query(..., pattern=r"^\d{4}-\d{2}$", description="Month in YYYY-MM format"),
     db: Session = Depends(get_db)
 ):
     """

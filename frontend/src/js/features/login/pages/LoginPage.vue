@@ -8,6 +8,7 @@
 			<p>Entre com suas credenciais para continuar</p>
 
 			<UForm
+				ref="form"
 				class="mt-8 flex flex-col gap-3"
 				:state="state"
 				:schema="schema"
@@ -56,6 +57,7 @@
 					class="w-full justify-center mt-2"
 					size="xl"
 					type="submit"
+					:loading="loading"
 				>
 					Entrar
 				</UButton>
@@ -70,6 +72,7 @@
 					<ULink
 						to="/register"
 						class="text-primary-500 hover:text-primary-600"
+						@click="handleRegisterClick"
 					>
 						Cadastre-se
 					</ULink>
@@ -80,14 +83,18 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, useTemplateRef } from 'vue'
 import * as v from 'valibot'
 import { login } from '@/js/shared/services/auth'
 import { useApi } from '@/js/shared/composables/useApi'
+import { useRouter } from 'vue-router'
 
+const toast = useToast()
+const router = useRouter()
 const { request: loginRequest, error, loading } = useApi(login);
 
 const showPassword = ref(false);
+const form = useTemplateRef('form')
 
 const state = reactive({
 	email: '',
@@ -107,11 +114,25 @@ const schema = v.object({
 });
 
 async function handleSubmit(event) {
-	const response = await loginRequest(event.data)
-
-	if (response.access_token) {
-		localStorage.setItem('token', response.access_token)
+	try {
+		const response = await loginRequest(event.data)
+		if (response.access_token) {
+			localStorage.setItem('token', response.access_token)
+			router.push('/')
+		}
+	} catch (e) {
+		state.email = ''
+		state.password = ''
+		form.value.clear()
+		toast.add({
+			title: error.value.detail,
+			color: 'error',
+		})
 	}
+}
+
+function handleRegisterClick() {
+	router.push('/register')
 }
 
 </script>

@@ -2,7 +2,7 @@
 	<div class="flex flex-col gap-3 items-center justify-center flex-1">
 		<section class="text-center">
 			<h1 class="font-semibold">
-				Seja bem vindo!
+				Seja bem-vindo(a)!
 			</h1>
 
 			<p>Entre com suas credenciais para continuar</p>
@@ -70,9 +70,8 @@
 					<span>Não possui conta?</span>
 
 					<ULink
-						to="/register"
 						class="text-primary-500 hover:text-primary-600"
-						@click="handleRegisterClick"
+						:to="{ name: 'register' }"
 					>
 						Cadastre-se
 					</ULink>
@@ -84,10 +83,10 @@
 
 <script setup>
 import { ref, reactive, useTemplateRef } from 'vue'
-import * as v from 'valibot'
-import { login } from '@/js/shared/services/auth'
+import { login } from '@/js/core/services/auth'
 import { useApi } from '@/js/shared/composables/useApi'
 import { useRouter } from 'vue-router'
+import * as v from 'valibot'
 
 const toast = useToast()
 const router = useRouter()
@@ -129,10 +128,6 @@ async function handleSubmit(event) {
 			color: 'error',
 		})
 	}
-}
-
-function handleRegisterClick() {
-	router.push('/register')
 }
 
 </script>

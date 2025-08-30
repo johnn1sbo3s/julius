@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import DashboardPage from '@/js/features/dashboard/pages/DashboardPage.vue'
 import LoginRoutes from '@/js/features/login/routes/index'
 import TransactionRoutes from '@/js/features/transaction/routes/index'
+import RegisterRoutes from '@/js/features/register/routes/index'
 
 const router = createRouter({
 	history: createWebHistory(import.meta.env.BASE_URL),
@@ -21,6 +22,7 @@ const router = createRouter({
 
 		...LoginRoutes,
 		...TransactionRoutes,
+		...RegisterRoutes,
 	],
 })
 

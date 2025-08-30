@@ -6,3 +6,11 @@ export async function login({ email, password }) {
 		password,
 	})
 }
+
+export async function register({ name, email, password }) {
+	return api.post('/users/register', {
+		name,
+		email,
+		password,
+	})
+}

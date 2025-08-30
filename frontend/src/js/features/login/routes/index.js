@@ -1,4 +1,4 @@
-import LoginPage from '@/ts/features/login/pages/LoginPage.vue';
+import LoginPage from '@/js/features/login/pages/LoginPage.vue';
 
 export default [
 	{

@@ -28,6 +28,6 @@
 </template>
 
 <script lang="ts" setup>
-import TransactionForm from '@/ts/features/dashboard/components/TransactionForm.vue'
+import TransactionForm from '@/js/features/dashboard/components/TransactionForm.vue'
 
 </script>

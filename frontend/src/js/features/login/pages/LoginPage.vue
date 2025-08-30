@@ -35,8 +35,21 @@
 						v-model="state.password"
 						class="w-full"
 						size="xl"
-						type="password"
-					/>
+						:type="showPassword ? 'text' : 'password'"
+					>
+						<template #trailing>
+							<UButton
+								color="neutral"
+								variant="link"
+								size="sm"
+								aria-controls="password"
+								:icon="showPassword ? 'i-lucide-eye-off' : 'i-lucide-eye'"
+								:aria-label="showPassword ? 'Esconder senha' : 'Mostrar senha'"
+								:aria-pressed="showPassword"
+								@click="showPassword = !showPassword"
+							/>
+						</template>
+					</UInput>
 				</UFormField>
 
 				<UButton
@@ -66,10 +79,15 @@
 	</div>
 </template>
 
-<script lang="ts" setup>
-import { reactive } from 'vue'
+<script setup>
+import { ref, reactive } from 'vue'
 import * as v from 'valibot'
-import type { FormSubmitEvent } from '@nuxt/ui'
+import { login } from '@/js/shared/services/auth'
+import { useApi } from '@/js/shared/composables/useApi'
+
+const { request: loginRequest, error, loading } = useApi(login);
+
+const showPassword = ref(false);
 
 const state = reactive({
 	email: '',
@@ -88,10 +106,12 @@ const schema = v.object({
 	),
 });
 
-type Schema = v.InferOutput<typeof schema>
+async function handleSubmit(event) {
+	const response = await loginRequest(event.data)
 
-function handleSubmit(event: FormSubmitEvent<Schema>) {
-	console.log(event.data);
+	if (response.access_token) {
+		localStorage.setItem('token', response.access_token)
+	}
 }
 
 </script>

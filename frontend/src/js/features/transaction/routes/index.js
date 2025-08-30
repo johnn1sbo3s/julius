@@ -1,4 +1,4 @@
-import TransactionPage from '@/ts/features/transaction/pages/TransactionPage.vue';
+import TransactionPage from '@/js/features/transaction/pages/TransactionPage.vue';
 
 export default [
 	{

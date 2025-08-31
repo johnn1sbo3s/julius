@@ -15,7 +15,7 @@ class CategoryDashboard(BaseModel):
     name: str = Field(..., description="Category name")
     totalSpent: Decimal = Field(..., description="Total amount spent in the current month")
     budget: Optional[Decimal] = Field(None, description="Allocated budget for the current month")
-    
+
     model_config = ConfigDict(
         from_attributes=True,
         json_schema_extra={

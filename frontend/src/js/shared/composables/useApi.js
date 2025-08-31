@@ -10,6 +10,7 @@ export function useApi(service) {
 
 		try {
 			data.value = await service(...args);
+			data.value = data.value?.data
 			return data.value?.data
 		} catch (error) {
 			errorMsg.value = error.response?.data || error.message

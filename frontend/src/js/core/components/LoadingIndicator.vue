@@ -37,8 +37,6 @@ const props = defineProps({
 	},
 });
 
-console.log(props.modelValue)
-
 // Variáveis reativas
 const currentPercentage = ref(0);
 

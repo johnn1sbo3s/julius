@@ -106,16 +106,20 @@ class TestCategoryCRUD:
     
     def test_get_categories(self, db_session: Session, test_user):
         """Test getting multiple categories for a user."""
-        # Create multiple categories
-        categories = ["Food", "Transportation", "Entertainment", "Healthcare", "Shopping"]
+        # User already has 5 default categories created automatically
+        initial_categories = get_categories(db_session, test_user.id)
+        assert len(initial_categories) == 5  # Default categories
         
-        for cat_name in categories:
+        # Create additional categories
+        additional_categories = ["Food", "Transportation", "Entertainment", "Healthcare", "Shopping"]
+        
+        for cat_name in additional_categories:
             category_data = CategoryCreate(name=cat_name)
             create_category(db_session, category_data, test_user.id)
         
-        # Get all categories
-        user_categories = get_categories(db_session, test_user.id, skip=0, limit=10)
-        assert len(user_categories) == 5
+        # Get all categories (5 default + 5 additional = 10)
+        user_categories = get_categories(db_session, test_user.id, skip=0, limit=15)
+        assert len(user_categories) == 10
         
         # Test pagination
         page1 = get_categories(db_session, test_user.id, skip=0, limit=2)
@@ -128,9 +132,17 @@ class TestCategoryCRUD:
         assert page1[0].id != page2[0].id
     
     def test_get_categories_empty(self, db_session: Session, test_user):
-        """Test getting categories when user has none."""
+        """Test getting categories when user has default categories."""
+        # User now has 5 default categories created automatically
         categories = get_categories(db_session, test_user.id)
-        assert len(categories) == 0
+        assert len(categories) == 5  # Default categories: Alimentação, Transporte, Gastos Fixos, Compras, Lazer
+        
+        # Verify the default categories exist
+        category_names = [cat.name for cat in categories]
+        expected_default_categories = ["Alimentação", "Transporte", "Gastos Fixos", "Compras", "Lazer"]
+        
+        for expected_name in expected_default_categories:
+            assert expected_name in category_names
     
     def test_get_category_by_name(self, db_session: Session, test_user):
         """Test getting category by name."""

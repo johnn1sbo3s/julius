@@ -47,7 +47,7 @@
 
 			<div class="flex gap-2">
 				<UButton
-					class="w-full justify-center"
+					class="w-full justify-center cursor-pointer"
 					size="xl"
 					icon="i-lucide-ban"
 					color="neutral"
@@ -57,7 +57,7 @@
 				</UButton>
 
 				<UButton
-					class="w-full justify-center"
+					class="w-full justify-center cursor-pointer"
 					size="xl"
 					icon="i-lucide-check"
 					type="submit"

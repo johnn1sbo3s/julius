@@ -32,4 +32,4 @@ class Expense(Base):
 
     # Relationships
     category: Mapped["Category"] = relationship(back_populates="expenses")
-    transactions: Mapped[list["Transaction"]] = relationship(back_populates="expense")
+    transactions: Mapped[list["Transaction"]] = relationship(back_populates="expense", cascade="all, delete-orphan")

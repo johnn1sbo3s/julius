@@ -15,6 +15,8 @@ from app.crud.user import (
     authenticate_user,
 )
 from app.schemas.user import UserCreate, UserUpdate
+from app.crud.category import get_categories
+from app.crud.expense import get_expenses
 
 
 class TestUserCRUD:
@@ -256,3 +258,50 @@ class TestUserCRUD:
         )
         
         assert authenticated_user is None
+    
+    def test_create_user_with_default_categories_and_expenses(self, db_session: Session):
+        """Test that creating a user automatically creates default categories and expenses."""
+        user_data = UserCreate(
+            name="Test User",
+            email="testuser@example.com",
+            password="testpassword123"
+        )
+        
+        # Create user
+        user = create_user(db_session, user_data)
+        
+        # Verify user was created
+        assert user.id is not None
+        assert user.email == "testuser@example.com"
+        
+        # Get all categories for the user
+        categories = get_categories(db_session, user.id)
+        
+        # Should have 5 default categories
+        assert len(categories) == 5
+        
+        # Check category names
+        category_names = {cat.name for cat in categories}
+        expected_categories = {"Alimentação", "Transporte", "Gastos Fixos", "Compras", "Lazer"}
+        assert category_names == expected_categories
+        
+        # Check expenses for each category
+        expected_expenses = {
+            "Alimentação": {"delivery", "janta", "almoço"},
+            "Transporte": {"uber", "gasolina", "manutenção"},
+            "Gastos Fixos": {"energia", "internet", "mercado", "aluguel", "celular"},
+            "Compras": {"roupas", "jogos"},
+            "Lazer": set()  # Empty category
+        }
+        
+        for category in categories:
+            expenses = get_expenses(db_session, user.id, category_id=category.id)
+            expense_names = {exp.name for exp in expenses}
+            
+            expected_expense_names = expected_expenses[category.name]
+            assert expense_names == expected_expense_names, f"Category '{category.name}' has incorrect expenses. Expected: {expected_expense_names}, Got: {expense_names}"
+            
+            # Verify each expense belongs to the correct category and user
+            for expense in expenses:
+                assert expense.category_id == category.id
+                assert expense.user_id == user.id

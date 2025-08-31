@@ -9,9 +9,61 @@ from datetime import datetime, timezone
 from typing import Optional, List
 from sqlalchemy.orm import Session
 
-from ..models import User
+from ..models import User, Category, Expense
 from ..schemas.user import UserCreate, UserUpdate
 from ..security import get_password_hash, verify_password
+
+
+# =============================================================================
+# DEFAULT DATA INITIALIZATION
+# =============================================================================
+
+def _create_default_categories_and_expenses(db: Session, user_id: int) -> None:
+    """
+    Create default categories and expenses for a new user.
+    
+    This function creates predefined categories with their associated expenses:
+    - Alimentação: delivery, janta, almoço
+    - Transporte: uber, gasolina, manutenção
+    - Gastos Fixos: energia, internet, mercado, aluguel, celular
+    - Compras: roupas, jogos
+    - Lazer: (empty category for user to add their own expenses)
+    
+    Args:
+        db: Database session
+        user_id: ID of the newly created user
+    """
+    # Define default categories and their expenses
+    default_data = {
+        "Alimentação": ["delivery", "janta", "almoço"],
+        "Transporte": ["uber", "gasolina", "manutenção"],
+        "Gastos Fixos": ["energia", "internet", "mercado", "aluguel", "celular"],
+        "Compras": ["roupas", "jogos"],
+        "Lazer": []  # Empty category for user customization
+    }
+    
+    for category_name, expense_names in default_data.items():
+        # Create category
+        category = Category(
+            name=category_name,
+            user_id=user_id,
+            created_at=datetime.now(timezone.utc)
+        )
+        db.add(category)
+        db.flush()  # Flush to get the category ID
+        
+        # Create expenses for this category
+        for expense_name in expense_names:
+            expense = Expense(
+                name=expense_name,
+                category_id=category.id,
+                user_id=user_id,
+                created_at=datetime.now(timezone.utc)
+            )
+            db.add(expense)
+    
+    # Commit all changes
+    db.commit()
 
 
 # =============================================================================
@@ -35,7 +87,7 @@ def get_users(db: Session, skip: int = 0, limit: int = 100) -> List[User]:
 
 def create_user(db: Session, user: UserCreate) -> User:
     """
-    Create a new user.
+    Create a new user with default categories and expenses.
     
     Args:
         db: Database session
@@ -62,10 +114,13 @@ def create_user(db: Session, user: UserCreate) -> User:
         created_at=datetime.now(timezone.utc)
     )
     
-    # Save to database
+    # Save user to database
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
+    
+    # Create default categories and expenses for the new user
+    _create_default_categories_and_expenses(db, db_user.id)
     
     return db_user
 

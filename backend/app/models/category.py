@@ -30,5 +30,5 @@ class Category(Base):
 
     # Relationships
     owner: Mapped["User"] = relationship(back_populates="categories")
-    expenses: Mapped[list["Expense"]] = relationship(back_populates="category")
-    budgets: Mapped[list["CategoryBudget"]] = relationship(back_populates="category")
+    expenses: Mapped[list["Expense"]] = relationship(back_populates="category", cascade="all, delete-orphan")
+    budgets: Mapped[list["CategoryBudget"]] = relationship(back_populates="category", cascade="all, delete-orphan")

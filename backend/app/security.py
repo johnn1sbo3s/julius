@@ -14,6 +14,7 @@ from sqlalchemy.orm import Session
 
 from app.database import SessionLocal
 from app.models.user import User
+from app.models.enums import UserRole
 
 
 # Configuration
@@ -189,11 +190,83 @@ async def get_current_active_user(
         User: Current active user
         
     Raises:
-        HTTPException: If user is inactive (can be extended later)
+        HTTPException: If user is inactive
     """
-    # For now, all users are considered active
-    # This can be extended to check user.is_active field if added to model
+    if not current_user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="User account is deactivated"
+        )
     return current_user
+
+
+async def get_current_admin_user(
+    current_user: User = Depends(get_current_active_user)
+) -> User:
+    """
+    Dependency to get current admin user.
+    
+    Args:
+        current_user: Current authenticated user
+        
+    Returns:
+        User: Current admin user
+        
+    Raises:
+        HTTPException: If user is not an admin
+    """
+    if not current_user.is_admin():
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin privileges required"
+        )
+    return current_user
+
+
+async def get_current_moderator_user(
+    current_user: User = Depends(get_current_active_user)
+) -> User:
+    """
+    Dependency to get current moderator user or higher.
+    
+    Args:
+        current_user: Current authenticated user
+        
+    Returns:
+        User: Current moderator user
+        
+    Raises:
+        HTTPException: If user is not a moderator or admin
+    """
+    if not current_user.is_moderator():
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Moderator privileges required"
+        )
+    return current_user
+
+
+def require_role(required_role: UserRole):
+    """
+    Dependency factory to require a specific role or higher.
+    
+    Args:
+        required_role: The minimum role required
+        
+    Returns:
+        Dependency function that checks user role
+    """
+    async def role_checker(
+        current_user: User = Depends(get_current_active_user)
+    ) -> User:
+        if not current_user.has_permission(required_role):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Role '{required_role.value}' or higher required"
+            )
+        return current_user
+    
+    return role_checker
 
 
 def authenticate_user(db: Session, email: str, password: str) -> Optional[User]:

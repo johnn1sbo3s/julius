@@ -10,7 +10,8 @@ from typing import Optional, List
 from sqlalchemy.orm import Session
 
 from ..models import User, Category, Expense
-from ..schemas.user import UserCreate, UserUpdate
+from ..models.enums import UserRole
+from ..schemas.user import UserCreate, UserUpdate, UserAdminUpdate
 from ..security import get_password_hash, verify_password
 
 
@@ -80,9 +81,12 @@ def get_user_by_email(db: Session, email: str) -> Optional[User]:
     return db.query(User).filter(User.email == email).first()
 
 
-def get_users(db: Session, skip: int = 0, limit: int = 100) -> List[User]:
+def get_users(db: Session, skip: int = 0, limit: int = 100, include_inactive: bool = False) -> List[User]:
     """Get multiple users with pagination."""
-    return db.query(User).offset(skip).limit(limit).all()
+    query = db.query(User)
+    if not include_inactive:
+        query = query.filter(User.is_active == True)
+    return query.offset(skip).limit(limit).all()
 
 
 def create_user(db: Session, user: UserCreate) -> User:
@@ -111,6 +115,8 @@ def create_user(db: Session, user: UserCreate) -> User:
         name=user.name,
         email=user.email,
         password_hash=hashed_password,
+        role=user.role or UserRole.USER,  # Default to USER role if not specified
+        is_active=True,  # New users are active by default
         created_at=datetime.now(timezone.utc)
     )
     
@@ -208,3 +214,131 @@ def authenticate_user(db: Session, email: str, password: str) -> Optional[User]:
         return None
     
     return user
+
+
+def create_admin_user(db: Session, user: UserCreate) -> User:
+    """
+    Create a new admin user (admin-only operation).
+    
+    Args:
+        db: Database session
+        user: User data from API request
+        
+    Returns:
+        Created admin user model
+        
+    Raises:
+        ValueError: If user with email already exists
+    """
+    # Check if user already exists
+    if get_user_by_email(db, user.email):
+        raise ValueError(f"User with email {user.email} already exists")
+    
+    # Hash the password
+    hashed_password = get_password_hash(user.password)
+    
+    # Create admin user model
+    db_user = User(
+        name=user.name,
+        email=user.email,
+        password_hash=hashed_password,
+        role=user.role or UserRole.ADMIN,  # Force admin role
+        is_active=True,
+        created_at=datetime.now(timezone.utc)
+    )
+    
+    # Save user to database
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    
+    # Create default categories and expenses for the new admin user
+    _create_default_categories_and_expenses(db, db_user.id)
+    
+    return db_user
+
+
+def admin_update_user(db: Session, user_id: int, user: UserAdminUpdate) -> Optional[User]:
+    """
+    Update user information (admin operation with role and status changes).
+    
+    Args:
+        db: Database session
+        user_id: ID of user to update
+        user: Updated user data including role and status
+        
+    Returns:
+        Updated user model or None if user not found
+        
+    Raises:
+        ValueError: If trying to update to an email that already exists
+    """
+    db_user = get_user(db, user_id)
+    if not db_user:
+        return None
+    
+    # Check if email is being updated and if it already exists
+    if user.email and user.email != db_user.email:
+        existing_user = get_user_by_email(db, user.email)
+        if existing_user:
+            raise ValueError(f"User with email {user.email} already exists")
+    
+    # Update only provided fields
+    update_data = user.model_dump(exclude_unset=True)
+    
+    # Hash password if being updated
+    if "password" in update_data:
+        update_data["password_hash"] = get_password_hash(update_data.pop("password"))
+    
+    # Apply updates
+    for field, value in update_data.items():
+        setattr(db_user, field, value)
+    
+    db.commit()
+    db.refresh(db_user)
+    
+    return db_user
+
+
+def deactivate_user(db: Session, user_id: int) -> Optional[User]:
+    """
+    Deactivate a user account (soft delete).
+    
+    Args:
+        db: Database session
+        user_id: ID of user to deactivate
+        
+    Returns:
+        Updated user model or None if user not found
+    """
+    db_user = get_user(db, user_id)
+    if not db_user:
+        return None
+    
+    db_user.is_active = False
+    db.commit()
+    db.refresh(db_user)
+    
+    return db_user
+
+
+def activate_user(db: Session, user_id: int) -> Optional[User]:
+    """
+    Activate a user account.
+    
+    Args:
+        db: Database session
+        user_id: ID of user to activate
+        
+    Returns:
+        Updated user model or None if user not found
+    """
+    db_user = get_user(db, user_id)
+    if not db_user:
+        return None
+    
+    db_user.is_active = True
+    db.commit()
+    db.refresh(db_user)
+    
+    return db_user

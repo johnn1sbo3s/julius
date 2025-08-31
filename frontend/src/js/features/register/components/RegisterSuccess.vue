@@ -37,7 +37,7 @@ import { useRouter } from 'vue-router'
 const router = useRouter()
 
 function handleLoginClick() {
-	router.push({ name: 'login' })
+	router.push({ name: 'login-page' })
 }
 
 </script>

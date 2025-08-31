@@ -113,7 +113,7 @@
 
 					<ULink
 						class="text-primary-500 hover:text-primary-600"
-						:to="{ name: 'login' }"
+						:to="{ name: 'login-page' }"
 					>
 						Entre
 					</ULink>

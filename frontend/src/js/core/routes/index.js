@@ -19,6 +19,18 @@ const router = createRouter({
 				next('/login')
 			},
 		},
+		{
+			path: '/logout',
+			name: 'logout-page',
+			component: DashboardPage,
+			beforeEnter(to, from, next) {
+				if (localStorage.getItem('token')) {
+					localStorage.removeItem('token')
+				}
+
+				next('/login')
+			},
+		},
 
 		...LoginRoutes,
 		...TransactionRoutes,

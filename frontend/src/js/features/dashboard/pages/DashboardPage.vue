@@ -9,21 +9,10 @@
 		</section>
 
 		<section class="flex flex-col gap-4 w-full">
-			<h3 class="font-semibold">
-				Gastos por categoria
-			</h3>
-
-			<div class="grid grid-cols-2 w-full gap-2">
-				<UCard
-					v-for="category in categories"
-					:key="category.id"
-					class="w-full"
-				>
-					<div>
-						Chama
-					</div>
-				</UCard>
-			</div>
+			<CategoriesSection
+				:categories="categories"
+				:loading="categoriesLoading"
+			/>
 		</section>
 
 
@@ -51,12 +40,27 @@ import { onMounted } from 'vue';
 import TransactionForm from '@/js/features/dashboard/components/TransactionForm.vue'
 import { useApi } from '@/js/shared/composables/useApi'
 import { getCategories } from '@/js/features/dashboard/services/categories'
+import CategoriesSection from '@/js/features/dashboard/components/CategoriesSection.vue'
 
-const { request: getCategoriesRequest, data: categories, error, loading } = useApi(getCategories);
+const toast = useToast()
+const {
+	request: getCategoriesRequest,
+	data: categories,
+	error: categoriesError,
+	loading: categoriesLoading,
+} = useApi(getCategories);
 
 onMounted(async () => {
-	await getCategoriesRequest()
-	console.log(categories.value)
+	try {
+		await getCategoriesRequest()
+		console.log(categories.value)
+	} catch {
+		toast.add({
+			title: categoriesError.value.detail.msg,
+			color: 'error',
+		})
+	}
+
 })
 
 </script>

@@ -5,7 +5,7 @@ This file contains the FastAPI application instance and basic configuration.
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from .routes import user_router, category_router, expense_router, category_budget_router, transaction_router, auth_router
+from .routes import user_router, category_router, expense_router, category_budget_router, transaction_router, auth_router, dashboard_router
 
 app: FastAPI = FastAPI(
     title="Julius",
@@ -33,6 +33,7 @@ app.include_router(category_router, prefix="/api/v1")
 app.include_router(expense_router, prefix="/api/v1")
 app.include_router(category_budget_router, prefix="/api/v1")
 app.include_router(transaction_router, prefix="/api/v1")
+app.include_router(dashboard_router, prefix="/api/v1")
 
 @app.get("/")
 def read_root() -> dict[str, str]:

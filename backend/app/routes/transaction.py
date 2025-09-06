@@ -10,6 +10,8 @@ from sqlalchemy.orm import Session
 from ..database import get_db
 from ..schemas import transaction as transaction_schemas
 from ..crud import transaction as transaction_crud
+from ..security import get_current_active_user
+from ..models.user import User
 
 
 router = APIRouter(
@@ -22,20 +24,21 @@ router = APIRouter(
 @router.post("/", response_model=transaction_schemas.TransactionResponse, status_code=status.HTTP_201_CREATED)
 def create_transaction(
     transaction: transaction_schemas.TransactionCreate,
-    user_id: int = Query(..., description="ID of the user creating the transaction"),  # TODO: Extract from JWT in Phase 5
+    current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
     """
     Create a new transaction.
-    
+
     - **expense_id**: ID of the expense this transaction belongs to
     - **amount**: Transaction amount (must be positive)
     - **description**: Optional transaction description
     - **transaction_date**: Date when the transaction occurred
-    - **user_id**: ID of the user (will be extracted from JWT token in Phase 5)
+
+    The user ID is automatically extracted from the JWT token.
     """
     try:
-        db_transaction = transaction_crud.create_transaction(db=db, transaction=transaction, user_id=user_id)
+        db_transaction = transaction_crud.create_transaction(db=db, transaction=transaction, user_id=current_user.id)
         return db_transaction
     except ValueError as e:
         raise HTTPException(
@@ -46,7 +49,7 @@ def create_transaction(
 
 @router.get("/", response_model=List[transaction_schemas.TransactionResponse])
 def list_transactions(
-    user_id: int = Query(..., description="ID of the user"),  # TODO: Extract from JWT in Phase 5
+    current_user: User = Depends(get_current_active_user),
     expense_id: Optional[int] = Query(None, description="Filter by expense ID"),
     category_id: Optional[int] = Query(None, description="Filter by category ID"),
     start_date: Optional[date] = Query(None, description="Filter transactions from this date"),
@@ -58,10 +61,9 @@ def list_transactions(
     db: Session = Depends(get_db)
 ):
     """
-    Get transactions for a user with advanced filtering.
-    
+    Get transactions for the authenticated user with advanced filtering.
+
     **Advanced Filtering Options:**
-    - **user_id**: ID of the user (will be extracted from JWT token in Phase 5)
     - **expense_id**: Filter by specific expense
     - **category_id**: Filter by category (through expense)
     - **start_date**: Filter transactions from this date onwards
@@ -70,12 +72,13 @@ def list_transactions(
     - **max_amount**: Maximum transaction amount
     - **skip**: Number of transactions to skip (for pagination)
     - **limit**: Maximum number of transactions to return
-    
+
+    The user ID is automatically extracted from the JWT token.
     **Results are ordered by date (most recent first)**
     """
     transactions = transaction_crud.get_transactions(
         db=db,
-        user_id=user_id,
+        user_id=current_user.id,
         expense_id=expense_id,
         category_id=category_id,
         start_date=start_date,
@@ -91,16 +94,17 @@ def list_transactions(
 @router.get("/{transaction_id}", response_model=transaction_schemas.TransactionResponse)
 def get_transaction(
     transaction_id: int,
-    user_id: int = Query(..., description="ID of the user"),  # TODO: Extract from JWT in Phase 5
+    current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
     """
-    Get a specific transaction by ID.
-    
+    Get a specific transaction by ID for the authenticated user.
+
     - **transaction_id**: ID of the transaction
-    - **user_id**: ID of the user (will be extracted from JWT token in Phase 5)
+
+    The user ID is automatically extracted from the JWT token.
     """
-    transaction = transaction_crud.get_transaction(db=db, transaction_id=transaction_id, user_id=user_id)
+    transaction = transaction_crud.get_transaction(db=db, transaction_id=transaction_id, user_id=current_user.id)
     if not transaction:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -113,22 +117,23 @@ def get_transaction(
 def update_transaction(
     transaction_id: int,
     transaction_update: transaction_schemas.TransactionUpdate,
-    user_id: int = Query(..., description="ID of the user"),  # TODO: Extract from JWT in Phase 5
+    current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
     """
-    Update a transaction.
-    
+    Update a transaction for the authenticated user.
+
     - **transaction_id**: ID of the transaction to update
     - **amount**: New transaction amount (optional, must be positive)
     - **description**: New transaction description (optional)
     - **transaction_date**: New transaction date (optional)
-    - **user_id**: ID of the user (will be extracted from JWT token in Phase 5)
+
+    The user ID is automatically extracted from the JWT token.
     """
     transaction = transaction_crud.update_transaction(
-        db=db, 
-        transaction_id=transaction_id, 
-        user_id=user_id, 
+        db=db,
+        transaction_id=transaction_id,
+        user_id=current_user.id,
         transaction=transaction_update
     )
     if not transaction:
@@ -142,16 +147,17 @@ def update_transaction(
 @router.delete("/{transaction_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_transaction(
     transaction_id: int,
-    user_id: int = Query(..., description="ID of the user"),  # TODO: Extract from JWT in Phase 5
+    current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
     """
-    Delete a transaction.
-    
+    Delete a transaction for the authenticated user.
+
     - **transaction_id**: ID of the transaction to delete
-    - **user_id**: ID of the user (will be extracted from JWT token in Phase 5)
+
+    The user ID is automatically extracted from the JWT token.
     """
-    success = transaction_crud.delete_transaction(db=db, transaction_id=transaction_id, user_id=user_id)
+    success = transaction_crud.delete_transaction(db=db, transaction_id=transaction_id, user_id=current_user.id)
     if not success:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -161,23 +167,24 @@ def delete_transaction(
 
 @router.get("/analytics/monthly-summary")
 def get_monthly_summary(
-    user_id: int = Query(..., description="ID of the user"),  # TODO: Extract from JWT in Phase 5
     month: str = Query(..., pattern=r"^\d{4}-\d{2}$", description="Month in YYYY-MM format"),
+    current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
     """
-    Get monthly spending summary for a user.
-    
+    Get monthly spending summary for the authenticated user.
+
     **Analytics Endpoint**
-    - **user_id**: ID of the user (will be extracted from JWT token in Phase 5)
     - **month**: Month in YYYY-MM format (e.g., "2024-08")
-    
+
+    The user ID is automatically extracted from the JWT token.
+
     **Returns:**
     - Total spending for the month
     - Spending breakdown by category
     """
     try:
-        summary = transaction_crud.get_monthly_summary(db=db, user_id=user_id, month=month)
+        summary = transaction_crud.get_monthly_summary(db=db, user_id=current_user.id, month=month)
         return summary
     except Exception as e:
         raise HTTPException(

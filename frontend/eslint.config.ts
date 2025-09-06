@@ -16,7 +16,7 @@ export default defineConfigWithVueTs(
 
 	globalIgnores(['**/dist/**', '**/dist-ssr/**', '**/coverage/**']),
 
-	pluginVue.configs['flat/recommended'],
+	pluginVue.configs['flat/strongly-recommended'],
 	{
 		...pluginVitest.configs.recommended,
 		files: ['src/**/__tests__/*'],

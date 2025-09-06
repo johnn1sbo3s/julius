@@ -40,7 +40,7 @@
 							</span>
 
 							<span class="text-sm">
-								de {{ formatCurrency(category.budget) || 'ND' }}
+								de {{ formatCurrency(category.budget) || 'Não definido' }}
 							</span>
 						</div>
 					</div>

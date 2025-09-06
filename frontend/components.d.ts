@@ -18,6 +18,7 @@ declare module 'vue' {
     UInput: typeof import('./node_modules/@nuxt/ui/dist/runtime/components/Input.vue')['default']
     ULink: typeof import('./node_modules/@nuxt/ui/dist/runtime/vue/components/Link.vue')['default']
     UModal: typeof import('./node_modules/@nuxt/ui/dist/runtime/components/Modal.vue')['default']
+    UNavigationMenu: typeof import('./node_modules/@nuxt/ui/dist/runtime/components/NavigationMenu.vue')['default']
     USelect: typeof import('./node_modules/@nuxt/ui/dist/runtime/components/Select.vue')['default']
     USeparator: typeof import('./node_modules/@nuxt/ui/dist/runtime/components/Separator.vue')['default']
     USkeleton: typeof import('./node_modules/@nuxt/ui/dist/runtime/components/Skeleton.vue')['default']

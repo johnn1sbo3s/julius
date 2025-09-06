@@ -119,7 +119,7 @@ async function handleSubmit(event) {
 			localStorage.setItem('token', response.access_token)
 			router.push('/')
 		}
-	} catch (e) {
+	} catch {
 		state.email = ''
 		state.password = ''
 		form.value.clear()

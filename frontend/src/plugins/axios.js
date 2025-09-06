@@ -27,16 +27,16 @@ api.interceptors.response.use(
 			try {
 				const oldToken = localStorage.getItem("token");
 
-				const refreshResponse = await axios.get(
+				const refreshResponse = await axios.post(
 					'http://localhost:8000/api/v1/auth/refresh',
-					{
-						headers: { Authorization: `Bearer ${oldToken}` }
-					}
+					{},
+					{ headers: { Authorization: `Bearer ${oldToken}` } }
 				);
 
 				const newToken = refreshResponse.data.token;
 				localStorage.setItem("token", newToken);
 
+				originalRequest.headers.Authorization = `Bearer ${newToken}`;
 				originalRequest.headers.Authorization = `Bearer ${newToken}`;
 				return api(originalRequest);
 

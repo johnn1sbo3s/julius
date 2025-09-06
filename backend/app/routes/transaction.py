@@ -33,9 +33,10 @@ def create_transaction(
     - **expense_id**: ID of the expense this transaction belongs to
     - **amount**: Transaction amount (must be positive)
     - **description**: Optional transaction description
-    - **transaction_date**: Date when the transaction occurred
+    - **transaction_date**: Optional transaction date (defaults to current date if not provided)
 
     The user ID is automatically extracted from the JWT token.
+    The transaction date defaults to the current date if not provided.
     """
     try:
         db_transaction = transaction_crud.create_transaction(db=db, transaction=transaction, user_id=current_user.id)

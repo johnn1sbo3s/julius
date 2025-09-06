@@ -18,7 +18,7 @@ class TransactionBase(BaseModel):
     expense_id: int = Field(..., gt=0, description="ID of the expense this transaction belongs to")
     amount: Decimal = Field(..., gt=0, max_digits=10, decimal_places=2, description="Transaction amount")
     description: Optional[str] = Field(None, max_length=500, description="Transaction description")
-    transaction_date: date = Field(..., description="Date when the transaction occurred")
+    transaction_date: Optional[date] = Field(None, description="Date when the transaction occurred (defaults to current date)")
     
     @field_validator('amount')
     def validate_amount(cls, v):
@@ -35,8 +35,7 @@ class TransactionCreate(TransactionBase):
             "example": {
                 "expense_id": 1,
                 "amount": "45.80",
-                "description": "Compras no supermercado",
-                "transaction_date": "2024-08-26"
+                "description": "Compras no supermercado"
             }
         }
     )
@@ -64,9 +63,13 @@ class TransactionUpdate(BaseModel):
     )
 
 
-class TransactionResponse(TransactionBase):
+class TransactionResponse(BaseModel):
     """Schema for transaction data returned by the API."""
     id: int = Field(..., description="Transaction's unique identifier")
+    expense_id: int = Field(..., gt=0, description="ID of the expense this transaction belongs to")
+    amount: Decimal = Field(..., gt=0, max_digits=10, decimal_places=2, description="Transaction amount")
+    description: Optional[str] = Field(None, max_length=500, description="Transaction description")
+    transaction_date: date = Field(..., description="Date when the transaction occurred")
     user_id: int = Field(..., description="ID of the user who owns this transaction")
     created_at: datetime = Field(..., description="When the transaction was created")
     

@@ -83,13 +83,16 @@ def create_transaction(db: Session, transaction: TransactionCreate, user_id: int
     if not expense:
         raise ValueError(f"Expense with ID {transaction.expense_id} not found for this user")
     
+    # Set transaction date to current date if not provided
+    transaction_date = transaction.transaction_date or date.today()
+    
     # Create transaction model
     db_transaction = Transaction(
         expense_id=transaction.expense_id,
         user_id=user_id,
         amount=transaction.amount,
         description=transaction.description,
-        transaction_date=transaction.transaction_date,
+        transaction_date=transaction_date,
         created_at=datetime.now(timezone.utc)
     )
     

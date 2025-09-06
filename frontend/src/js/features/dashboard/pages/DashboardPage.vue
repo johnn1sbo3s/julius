@@ -29,7 +29,10 @@
 			</UButton>
 
 			<template #body="{ close }">
-				<TransactionForm @close="close" />
+				<TransactionForm
+					@close="close"
+					@completed="handleCompletedTransaction"
+				/>
 			</template>
 		</UModal>
 	</main>
@@ -59,7 +62,11 @@ onMounted(async () => {
 			color: 'error',
 		})
 	}
-
 })
+
+async function handleCompletedTransaction() {
+	console.log('entrei e vou chamar')
+	await getCategoriesRequest()
+}
 
 </script>

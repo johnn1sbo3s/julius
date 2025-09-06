@@ -8,11 +8,11 @@
 		>
 			<UFormField
 				label="Valor"
-				name="transactionValue"
+				name="amount"
 				required
 			>
 				<UInput
-					v-model="state.transactionValue"
+					v-model="state.amount"
 					class="w-full"
 					size="xl"
 					type="number"
@@ -29,16 +29,33 @@
 					class="w-full"
 					size="xl"
 					type="text"
-					:items="Object.values(Category)"
+					:items="categoriesOptions"
+					:loading="categoriesLoading"
+				/>
+			</UFormField>
+
+			<UFormField
+				label="Gasto"
+				name="expense"
+				required
+			>
+				<USelect
+					v-model="state.expense"
+					class="w-full"
+					size="xl"
+					type="text"
+					:items="expensesOptions"
+					:disabled="!state.category"
+					:loading="expensesLoading"
 				/>
 			</UFormField>
 
 			<UFormField
 				label="Descrição"
-				name="transactionDescription"
+				name="description"
 			>
 				<UInput
-					v-model="state.transactionDescription"
+					v-model="state.description"
 					class="w-full"
 					size="xl"
 					type="text"
@@ -49,7 +66,6 @@
 				<UButton
 					class="w-full justify-center cursor-pointer"
 					size="xl"
-					icon="i-lucide-ban"
 					color="neutral"
 					@click="handleCancelClick"
 				>
@@ -59,8 +75,8 @@
 				<UButton
 					class="w-full justify-center cursor-pointer"
 					size="xl"
-					icon="i-lucide-check"
 					type="submit"
+					:loading="postTransactionLoading"
 				>
 					Confirmar
 				</UButton>
@@ -69,46 +85,124 @@
 	</div>
 </template>
 
-<script lang="ts" setup>
-import { reactive } from 'vue'
+<script setup>
+import { onMounted, reactive, computed, watch, watchEffect } from 'vue'
 import * as v from 'valibot'
-import type { FormSubmitEvent } from '@nuxt/ui'
+import { getCategories } from '@/js/shared/services/categories'
+import { getExpenses } from '@/js/shared/services/expenses'
+import { postTransaction } from '@/js/shared/services/transaction'
+import { useApi } from '@/js/shared/composables/useApi'
 
-const emits = defineEmits(['close']);
+const { toast } = useToast()
 
-enum Category {
-	Food = 'Alimentação',
-	Transport = 'Transporte',
-	Entertainment = 'Compras e Entretenimento',
-	Fixed = 'Gastos Fixos',
-}
+const emits = defineEmits(['close', 'completed']);
+
+const {
+	request: categoriesRequest,
+	data: categoriesData,
+	loading: categoriesLoading,
+	error: categoriesError,
+} = useApi(getCategories)
+
+const {
+	request: expensesRequest,
+	data: expensesData,
+	loading: expensesLoading,
+	error: expensesError,
+} = useApi(getExpenses)
+
+const {
+	request: postTransactionRequest,
+	loading: postTransactionLoading,
+} = useApi(postTransaction)
 
 const state = reactive({
-	transactionValue: null,
-	transactionDescription: '',
+	amount: null,
 	category: null,
+	expense: null,
+	description: '',
 });
 
 const schema = v.object({
-	transactionValue: v.pipe(
+	amount: v.pipe(
 		v.number('O valor deve ser um número.'),
 		v.minValue(1, 'O valor deve ser maior que zero.'),
 	),
-	transactionDescription: v.string('Por favor, insira uma descrição válida.'),
-	category: v.enum(Category, 'Por favor, escolha uma categoria válida.'),
+	category: v.number('Selecione uma categoria.'),
+	expense: v.number('Selecione um gasto.'),
+	description: v.string('Insira uma descrição válida.'),
 });
 
-type Schema = v.InferOutput<typeof schema>
+const categoriesOptions = computed(() => {
+	if (!categoriesData.value) return []
+
+	return categoriesData.value.map((item) => {
+		return {
+			label: item.name,
+			value: item.id,
+		}
+	})
+})
+
+const expensesOptions = computed(() => {
+	if (!expensesData.value) return []
+
+	return expensesData.value.map((item) => {
+		return {
+			label: item.name,
+			value: item.id,
+		}
+	})
+})
+
+watch(() => state.category, (newValue, oldValue) => {
+	if (newValue === oldValue || !newValue) return
+
+	state.expense = null
+	expensesRequest({
+		categoryId: newValue,
+	})
+})
+
+watchEffect(() => {
+	if (categoriesError.value || expensesError.value) {
+		toast({
+			title: 'Erro ao buscar dados.',
+			description: 'Tente novamente mais tarde.',
+			variant: 'error',
+		})
+	}
+})
+
+onMounted(() => {
+	categoriesRequest();
+});
 
 function handleCancelClick() {
-	state.transactionValue = null;
+	state.amount = null;
 	state.category = null;
+	state.expense = null;
+	state.description = '';
 	emits('close');
 }
 
-function handleSubmit(event: FormSubmitEvent<Schema>) {
-	console.log(event.data);
-	emits('close');
+async function handleSubmit() {
+	try {
+		await postTransactionRequest({
+			amount: state.amount,
+			description: state.description,
+			expenseId: state.expense,
+		})
+
+		emits('completed')
+		emits('close')
+	} catch {
+		toast.add({
+			title: 'Erro ao salvar transação.',
+			description: 'Tente novamente mais tarde.',
+			variant: 'error',
+		})
+	}
 }
 
 </script>

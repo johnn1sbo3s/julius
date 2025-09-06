@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { decodeJWT } from '../utils/decodeToken';
 
 const api = axios.create({
 	baseURL: 'http://localhost:8000/api/v1',
@@ -15,5 +16,37 @@ api.interceptors.request.use((config) => {
 
 	return config
 })
+
+api.interceptors.response.use(
+	(response) => response,
+
+	async (error) => {
+		const originalRequest = error.config;
+
+		if (error.response?.status === 401) {
+			try {
+				const oldToken = localStorage.getItem("token");
+
+				const refreshResponse = await axios.get(
+					'http://localhost:8000/api/v1/auth/refresh',
+					{
+						headers: { Authorization: `Bearer ${oldToken}` }
+					}
+				);
+
+				const newToken = refreshResponse.data.token;
+				localStorage.setItem("token", newToken);
+
+				originalRequest.headers.Authorization = `Bearer ${newToken}`;
+				return api(originalRequest);
+
+			} catch (refreshError) {
+				return Promise.reject(refreshError);
+			}
+		}
+
+		return Promise.reject(error);
+	}
+);
 
 export default api;

@@ -6,7 +6,7 @@ These schemas define the structure of dashboard data that flows through our API.
 
 from decimal import Decimal
 from typing import Optional
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict, field_validator
 
 
 class CategoryDashboard(BaseModel):
@@ -15,6 +15,12 @@ class CategoryDashboard(BaseModel):
     name: str = Field(..., description="Category name")
     totalSpent: Decimal = Field(..., description="Total amount spent in the current month")
     budget: Optional[Decimal] = Field(None, description="Allocated budget for the current month")
+
+    @field_validator('name')
+    @classmethod
+    def format_name(cls, v: str) -> str:
+        """Format name with title case for frontend display."""
+        return v.title() if v else v
 
     model_config = ConfigDict(
         from_attributes=True,

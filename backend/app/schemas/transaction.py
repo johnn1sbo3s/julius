@@ -70,6 +70,12 @@ class TransactionResponse(TransactionBase):
     user_id: int = Field(..., description="ID of the user who owns this transaction")
     created_at: datetime = Field(..., description="When the transaction was created")
     
+    @field_validator('description')
+    @classmethod
+    def format_description(cls, v: Optional[str]) -> Optional[str]:
+        """Format description with title case for frontend display."""
+        return v.title() if v else v
+    
     model_config = ConfigDict(
         from_attributes=True,
         json_schema_extra={

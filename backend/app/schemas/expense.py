@@ -9,7 +9,7 @@ These schemas define the structure of expense data that flows through our API:
 
 from datetime import datetime
 from typing import Optional
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict, field_validator
 
 
 class ExpenseBase(BaseModel):
@@ -49,6 +49,12 @@ class ExpenseResponse(ExpenseBase):
     """Schema for expense data returned by the API."""
     id: int = Field(..., description="Expense's unique identifier")
     created_at: datetime = Field(..., description="When the expense was created")
+    
+    @field_validator('name')
+    @classmethod
+    def format_name(cls, v: str) -> str:
+        """Format name with title case for frontend display."""
+        return v.title() if v else v
 
     model_config = ConfigDict(
         from_attributes=True,

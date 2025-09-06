@@ -53,7 +53,6 @@ const {
 onMounted(async () => {
 	try {
 		await getCategoriesRequest()
-		console.log(categories.value)
 	} catch {
 		toast.add({
 			title: categoriesError.value.detail.msg,

@@ -115,8 +115,9 @@ const schema = v.object({
 async function handleSubmit(event) {
 	try {
 		const response = await loginRequest(event.data)
-		if (response.access_token) {
+		if (response.access_token && response.refresh_token) {
 			localStorage.setItem('token', response.access_token)
+			localStorage.setItem('refresh_token', response.refresh_token)
 			router.push('/')
 		}
 	} catch {

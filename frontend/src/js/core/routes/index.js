@@ -27,6 +27,9 @@ const router = createRouter({
 				if (localStorage.getItem('token')) {
 					localStorage.removeItem('token')
 				}
+				if (localStorage.getItem('refresh_token')) {
+					localStorage.removeItem('refresh_token')
+				}
 
 				next('/login')
 			},

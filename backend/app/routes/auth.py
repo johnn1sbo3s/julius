@@ -10,13 +10,16 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
 from app.database import SessionLocal
-from app.schemas.auth import Token, LoginRequest
+from app.schemas.auth import Token, LoginRequest, RefreshTokenRequest
 from app.schemas.user import UserResponse
 from app.security import (
     authenticate_user,
     create_access_token,
+    create_refresh_token,
     get_current_active_user,
-    ACCESS_TOKEN_EXPIRE_MINUTES
+    get_user_from_refresh_token,
+    ACCESS_TOKEN_EXPIRE_MINUTES,
+    REFRESH_TOKEN_EXPIRE_DAYS
 )
 from app.models.user import User
 
@@ -45,7 +48,7 @@ async def login_for_access_token(
     - password
     
     Returns:
-        Token: JWT access token
+        Token: JWT access token and refresh token
         
     Raises:
         HTTPException: If authentication fails
@@ -59,12 +62,23 @@ async def login_for_access_token(
         )
     
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    refresh_token_expires = timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
+    
     access_token = create_access_token(
         data={"sub": str(user.id)}, 
         expires_delta=access_token_expires
     )
     
-    return {"access_token": access_token, "token_type": "bearer"}
+    refresh_token = create_refresh_token(
+        data={"sub": str(user.id)}, 
+        expires_delta=refresh_token_expires
+    )
+    
+    return {
+        "access_token": access_token, 
+        "refresh_token": refresh_token,
+        "token_type": "bearer"
+    }
 
 
 @router.post("/login-json", response_model=Token)
@@ -80,7 +94,7 @@ async def login_with_json(
         db: Database session
         
     Returns:
-        Token: JWT access token
+        Token: JWT access token and refresh token
         
     Raises:
         HTTPException: If authentication fails
@@ -94,12 +108,23 @@ async def login_with_json(
         )
     
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    refresh_token_expires = timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
+    
     access_token = create_access_token(
         data={"sub": str(user.id)}, 
         expires_delta=access_token_expires
     )
     
-    return {"access_token": access_token, "token_type": "bearer"}
+    refresh_token = create_refresh_token(
+        data={"sub": str(user.id)}, 
+        expires_delta=refresh_token_expires
+    )
+    
+    return {
+        "access_token": access_token, 
+        "refresh_token": refresh_token,
+        "token_type": "bearer"
+    }
 
 
 @router.get("/me", response_model=UserResponse)
@@ -120,21 +145,51 @@ async def read_users_me(
 
 @router.post("/refresh", response_model=Token)
 async def refresh_token(
-    current_user: User = Depends(get_current_active_user)
+    refresh_data: RefreshTokenRequest,
+    db: Session = Depends(get_db)
 ):
     """
-    Refresh the current access token.
+    Refresh the access token using a valid refresh token.
     
     Args:
-        current_user: Current authenticated user from JWT token
+        refresh_data: Refresh token data
+        db: Database session
         
     Returns:
-        Token: New JWT access token
+        Token: New JWT access token and refresh token
+        
+    Raises:
+        HTTPException: If refresh token is invalid or user not found
     """
+    user = get_user_from_refresh_token(db, refresh_data.refresh_token)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid refresh token",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="User account is deactivated"
+        )
+    
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    refresh_token_expires = timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
+    
     access_token = create_access_token(
-        data={"sub": str(current_user.id)}, 
+        data={"sub": str(user.id)}, 
         expires_delta=access_token_expires
     )
     
-    return {"access_token": access_token, "token_type": "bearer"}
+    refresh_token = create_refresh_token(
+        data={"sub": str(user.id)}, 
+        expires_delta=refresh_token_expires
+    )
+    
+    return {
+        "access_token": access_token, 
+        "refresh_token": refresh_token,
+        "token_type": "bearer"
+    }

@@ -21,6 +21,7 @@ from app.models.enums import UserRole
 SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-here-change-in-production")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
+REFRESH_TOKEN_EXPIRE_DAYS = 7
 
 # Password hashing context
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -83,7 +84,31 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
     else:
         expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     
-    to_encode.update({"exp": expire})
+    to_encode.update({"exp": expire, "type": "access"})
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    
+    return encoded_jwt
+
+
+def create_refresh_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
+    """
+    Create a JWT refresh token.
+    
+    Args:
+        data: Dictionary containing user data to encode in token
+        expires_delta: Token expiration time (default: 7 days)
+        
+    Returns:
+        str: Encoded JWT refresh token
+    """
+    to_encode = data.copy()
+    
+    if expires_delta:
+        expire = datetime.now(timezone.utc) + expires_delta
+    else:
+        expire = datetime.now(timezone.utc) + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
+    
+    to_encode.update({"exp": expire, "type": "refresh"})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     
     return encoded_jwt
@@ -106,6 +131,26 @@ def verify_token(token: str) -> Optional[dict]:
         return None
 
 
+def verify_refresh_token(token: str) -> Optional[dict]:
+    """
+    Verify and decode a JWT refresh token.
+    
+    Args:
+        token: JWT refresh token string
+        
+    Returns:
+        dict: Decoded token payload or None if invalid or not a refresh token
+    """
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        # Check if this is actually a refresh token
+        if payload.get("type") != "refresh":
+            return None
+        return payload
+    except JWTError:
+        return None
+
+
 def get_user_from_token(db: Session, token: str) -> Optional[User]:
     """
     Get user from JWT token.
@@ -121,7 +166,35 @@ def get_user_from_token(db: Session, token: str) -> Optional[User]:
     if payload is None:
         return None
     
-    user_id: int = payload.get("sub")
+    user_id = payload.get("sub")
+    if user_id is None:
+        return None
+    
+    try:
+        user_id = int(user_id)
+    except (ValueError, TypeError):
+        return None
+    
+    user = db.query(User).filter(User.id == user_id).first()
+    return user
+
+
+def get_user_from_refresh_token(db: Session, refresh_token: str) -> Optional[User]:
+    """
+    Get user from JWT refresh token.
+    
+    Args:
+        db: Database session
+        refresh_token: JWT refresh token string
+        
+    Returns:
+        User: User object or None if token is invalid
+    """
+    payload = verify_refresh_token(refresh_token)
+    if payload is None:
+        return None
+    
+    user_id = payload.get("sub")
     if user_id is None:
         return None
     
@@ -161,16 +234,16 @@ async def get_current_user(
     if payload is None:
         raise credentials_exception
     
-    user_id: str = payload.get("sub")
+    user_id = payload.get("sub")
     if user_id is None:
         raise credentials_exception
     
     try:
-        user_id = int(user_id)
+        user_id_int = int(user_id)
     except (ValueError, TypeError):
         raise credentials_exception
     
-    user = db.query(User).filter(User.id == user_id).first()
+    user = db.query(User).filter(User.id == user_id_int).first()
     if user is None:
         raise credentials_exception
     

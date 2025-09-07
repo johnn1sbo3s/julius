@@ -29,13 +29,13 @@
 					:key="category.id"
 					class="w-full bg-slate-800 backdrop-blur-2xl border-1 border-slate-700"
 				>
-					<div class="flex flex-col gap-2">
-						<span class="text-sm font-semibold">
+					<div class="flex flex-col gap-1">
+						<span class="text-sm font-bold">
 							{{ category.name }}
 						</span>
 
 						<div class="flex flex-col">
-							<span class="font-bold text-lg">
+							<span class="font-bold text-lg text-amber-400">
 								{{ formatCurrency(category.totalSpent) }}
 							</span>
 

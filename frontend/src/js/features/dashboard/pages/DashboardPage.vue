@@ -8,7 +8,12 @@
 			<p>Vamos controlar os gastos juntos.</p>
 		</section>
 
-		<section class="flex flex-col gap-4 w-full">
+		<section class="flex flex-col gap-5 w-full">
+			<TotalSpentSection
+				:data="totalSpentData"
+				:loading="totalSpentLoading"
+			/>
+
 			<CategoriesSection
 				:categories="categories"
 				:loading="categoriesLoading"
@@ -42,23 +47,32 @@
 import { onMounted } from 'vue';
 import TransactionForm from '@/js/features/dashboard/components/TransactionForm.vue'
 import { useApi } from '@/js/shared/composables/useApi'
-import { getCategories } from '@/js/features/dashboard/services/categories'
+import { getCategories, getTotalSpent } from '@/js/features/dashboard/services/dashboard'
 import CategoriesSection from '@/js/features/dashboard/components/CategoriesSection.vue'
+import TotalSpentSection from '@/js/features/dashboard/components/TotalSpentSection.vue'
 
 const toast = useToast()
+
 const {
 	request: getCategoriesRequest,
 	data: categories,
-	error: categoriesError,
 	loading: categoriesLoading,
-} = useApi(getCategories);
+} = useApi(getCategories)
+
+const {
+	request: getTotalSpentRequest,
+	data: totalSpentData,
+	loading: totalSpentLoading,
+} = useApi(getTotalSpent)
 
 onMounted(async () => {
 	try {
 		await getCategoriesRequest()
+		await getTotalSpentRequest()
 	} catch {
 		toast.add({
-			title: categoriesError.value.detail.msg,
+			title: 'Erro ao buscar dados',
+			description: 'Tente novamente mais tarde.',
 			color: 'error',
 		})
 	}

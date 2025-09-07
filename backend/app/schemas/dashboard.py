@@ -33,3 +33,21 @@ class CategoryDashboard(BaseModel):
             }
         }
     )
+
+
+class TotalSpentDashboard(BaseModel):
+    """Schema for total spending and budget information in dashboard."""
+    budget: Decimal = Field(..., description="Total allocated budget for all categories")
+    spent: Decimal = Field(..., description="Total amount spent across all categories")
+    month: str = Field(..., description="Month in MM/YY format")
+
+    model_config = ConfigDict(
+        from_attributes=True,
+        json_schema_extra={
+            "example": {
+                "budget": 1500.12,
+                "spent": 2000.99,
+                "month": "08/25"
+            }
+        }
+    )

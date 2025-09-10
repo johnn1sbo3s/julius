@@ -13,6 +13,7 @@ from sqlalchemy.orm import Session
 from ..database import get_db
 from ..schemas import dashboard as dashboard_schemas
 from ..crud import dashboard as dashboard_crud
+from ..crud.category_budget import get_active_month
 from ..security import get_current_active_user
 from ..models.user import User
 
@@ -26,7 +27,6 @@ router = APIRouter(
 
 @router.get("/categories", response_model=List[dashboard_schemas.CategoryDashboard])
 def get_categories_dashboard(
-    month: str = Query(None, description="Month in YYYY-MM format (default: current month)"),
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
@@ -35,23 +35,18 @@ def get_categories_dashboard(
 
     Returns all categories for the authenticated user with:
     - Category ID and name
-    - Total amount spent in the specified month
-    - Allocated budget for the specified month (if any)
+    - Total amount spent in the currently active month
+    - Allocated budget for the currently active month (if any)
 
-    - **month**: Month in YYYY-MM format (defaults to current month)
     - **Authentication**: Requires valid JWT token
+    - **Active Month**: Requires an active month to be open
     """
-    # If no month specified, use current month
+    # Get the active month for the user
+    month = get_active_month(db, current_user.id)
     if not month:
-        month = datetime.now().strftime("%Y-%m")
-
-    # Validate month format
-    try:
-        datetime.strptime(month, "%Y-%m")
-    except ValueError:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Month must be in YYYY-MM format"
+            detail="No active month found. Please open a month first."
         )
 
     # Extract user_id from authenticated user
@@ -63,7 +58,6 @@ def get_categories_dashboard(
 
 @router.get("/total-spent", response_model=dashboard_schemas.TotalSpentDashboard)
 def get_total_spent_dashboard(
-    month: str = Query(None, description="Month in YYYY-MM format (default: current month)"),
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
@@ -75,20 +69,15 @@ def get_total_spent_dashboard(
     - Total amount spent across all categories
     - Formatted month (MM/YY)
 
-    - **month**: Month in YYYY-MM format (defaults to current month)
     - **Authentication**: Requires valid JWT token
+    - **Active Month**: Requires an active month to be open
     """
-    # If no month specified, use current month
+    # Get the active month for the user
+    month = get_active_month(db, current_user.id)
     if not month:
-        month = datetime.now().strftime("%Y-%m")
-
-    # Validate month format
-    try:
-        datetime.strptime(month, "%Y-%m")
-    except ValueError:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Month must be in YYYY-MM format"
+            detail="No active month found. Please open a month first."
         )
 
     # Extract user_id from authenticated user

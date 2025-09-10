@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 from ..database import get_db
 from ..schemas import transaction as transaction_schemas
 from ..crud import transaction as transaction_crud
+from ..crud.category_budget import get_active_month
 from ..security import get_current_active_user
 from ..models.user import User
 
@@ -166,24 +167,34 @@ def delete_transaction(
         )
 
 
-@router.get("/analytics/monthly-summary")
-def get_monthly_summary(
-    month: str = Query(..., pattern=r"^\d{4}-\d{2}$", description="Month in YYYY-MM format"),
+@router.get("/analytics/current-month-summary")
+def get_current_monthly_summary(
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
     """
-    Get monthly spending summary for the authenticated user.
+    Get monthly spending summary for the currently active month.
 
     **Analytics Endpoint**
-    - **month**: Month in YYYY-MM format (e.g., "2024-08")
+    - Uses the currently active month for the authenticated user
 
     The user ID is automatically extracted from the JWT token.
 
     **Returns:**
-    - Total spending for the month
+    - Total spending for the active month
     - Spending breakdown by category
+
+    **Raises:**
+    - HTTPException: If no active month found
     """
+    # Get the active month for the user
+    month = get_active_month(db, current_user.id)
+    if not month:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No active month found. Please open a month first."
+        )
+
     try:
         summary = transaction_crud.get_monthly_summary(db=db, user_id=current_user.id, month=month)
         return summary
